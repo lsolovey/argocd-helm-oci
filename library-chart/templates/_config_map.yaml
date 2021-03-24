@@ -1,0 +1,8 @@
+{{- define "library-chart.config-map" }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: demo-config
+data:
+  foo: "bar"
+{{- end }}
