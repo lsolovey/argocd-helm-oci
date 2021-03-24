@@ -2,6 +2,8 @@
 
 This is a small project that demonstrates an issue with Argo CD updating Helm chart dependencies if there is any Helm OCI repository configured in the system.
 
+https://github.com/argoproj/argo-cd/issues/5856
+
 NOTE: Helm OCI repository doesn't even have to be used. It just needs to be added to Argo CD repository list.
 
 === Repo Structure
