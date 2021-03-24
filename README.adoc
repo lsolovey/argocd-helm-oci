@@ -1,0 +1,53 @@
+== Overview
+
+This is a small project that demonstrates an issue with Argo CD updating Helm chart dependencies if there is any Helm OCI repository configured in the system.
+
+NOTE: Helm OCI repository doesn't even have to be used. It just needs to be added to Argo CD repository list.
+
+=== Repo Structure
+
+|===
+|Folder | Description
+
+|`application-chart`
+|Contains main Helm chart for the application to be installed. For simplicity, it just renders single ConfigMap.
+This Helm chart depends on another chart in the `library-chart` folder.
+
+
+|`library-chart`
+|Library chart that is used by main application Helm chart.
+|===
+
+== Steps To Reproduce
+
+1) Add _any_ Helm OCI repository. It's not going to be used by our application, it just needs to be added to Argo CD:
+
+ argocd repo add myregistry.azurecr.io/helm --type helm --name test-helm-oci-repo --enable-oci --username <username> --password <password>
+
+2) Create new Application pointing to Helm chart in `application-chart` folder of this GitHub repo.
+   This Helm chart has dependency on another chart in `library-chart` folder.
+
+ argocd app create sample-app --dest-namespace argocd --dest-server https://kubernetes.default.svc --repo https://github.com/lsolovey/argocd-helm-oci.git --path application-chart --sync-policy auto
+
+Resulting error:
+
+ time="2021-03-24T15:19:21-04:00" level=fatal msg="rpc error: code = InvalidArgument desc = application spec is invalid: InvalidSpecError: Unable to generate manifests in application-chart: rpc error: code = Unknown desc = `helm repo add --username ****** --password ****** test-helm-oci-repo myregistry.azurecr.io/helm` failed exit status 1: Error: could not find protocol handler for:"
+
+NOTE: Argo CD is trying to perform `helm repo add ...` for the Helm OCI repo.
+
+3) Remove Helm OCI repository from step 1:
+
+
+ argocd repo rm myregistry.azurecr.io/helm
+
+
+4) Try creating the same Application again:
+ 
+
+ argocd app create sample-app --dest-namespace argocd --dest-server https://kubernetes.default.svc --repo https://github.com/lsolovey/argocd-helm-oci.git --path application-chart --sync-policy auto
+
+
+Application is created successfully:
+
+
+ application 'sample-app' created
